@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel dos Canais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<style>
+:root {
+  --noite: #0D1220; --painel: #141B2D; --painel-2: #1A2238; --linha: #242E47; --linha-forte: #34405F;
+  --tinta: #E9EDF6; --tinta-2: #B4BCD0; --tinta-3: #7F89A3;
+  --dindin: #22A97F; --oracao: #C07F14; --soninho: #8B6CEB;
+  --bom: #3FB97F; --atencao: #E2A93B; --ruim: #E5646E;
+  --raio-g: 20px; --raio-m: 12px; --raio-p: 8px;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --texto: "Instrument Sans", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--noite); color: var(--tinta); font-family: var(--texto); font-size: 15px; line-height: 1.5; }
+body { min-height: 100vh; font-variant-numeric: tabular-nums; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid #9DB4FF; outline-offset: 2px; }
+.oculto { display: none !important; }
+
+/* ---------- porta (senha) ---------- */
+#porta { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.porta-caixa { width: min(420px, 100%); }
+.porta-caixa h1 { font-family: var(--display); font-weight: 800; font-size: 40px; line-height: 1.05; margin: 0 0 8px; letter-spacing: -0.02em; }
+.porta-caixa p { color: var(--tinta-2); margin: 0 0 28px; }
+.porta-trilhas { display: flex; gap: 6px; margin-bottom: 28px; }
+.porta-trilhas span { height: 6px; flex: 1; border-radius: 3px; }
+.campo { display: flex; gap: 8px; }
+.campo input { flex: 1; background: var(--painel); border: 1px solid var(--linha-forte); border-radius: var(--raio-m); padding: 14px 16px; }
+.botao { background: var(--tinta); color: var(--noite); border: 0; border-radius: var(--raio-m); padding: 14px 20px; font-weight: 600; cursor: pointer; }
+.botao:disabled { opacity: .6; cursor: progress; }
+#erro-senha { color: var(--ruim); min-height: 24px; margin-top: 10px; font-size: 14px; }
+
+/* ---------- estrutura ---------- */
+#app { max-width: 1320px; margin: 0 auto; padding: 28px 24px 80px; }
+header.topo { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+header.topo h1 { font-family: var(--display); font-weight: 800; font-size: clamp(28px, 4vw, 44px); line-height: 1; margin: 0; letter-spacing: -0.025em; }
+.subtitulo { color: var(--tinta-2); margin-top: 8px; font-size: 14px; }
+.subtitulo strong { color: var(--tinta); font-weight: 600; }
+
+.filtros { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--noite) 88%, transparent); backdrop-filter: blur(10px);
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 12px 0; margin-bottom: 26px; border-bottom: 1px solid var(--linha); }
+.grupo { display: flex; align-items: center; gap: 8px; }
+.grupo > span { color: var(--tinta-3); font-size: 13px; }
+.seg { display: inline-flex; background: var(--painel); border: 1px solid var(--linha); border-radius: 999px; padding: 3px; }
+.seg button { border: 0; background: transparent; padding: 6px 13px; border-radius: 999px; cursor: pointer; color: var(--tinta-2); font-size: 14px; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--painel-2); color: var(--tinta); box-shadow: inset 0 0 0 1px var(--linha-forte); }
+.seg button .bola { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+select.escolha { background: var(--painel); border: 1px solid var(--linha); border-radius: 999px; padding: 7px 14px; max-width: 280px; }
+
+section { margin-bottom: 34px; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; margin: 0 0 4px; }
+.nota-sec { color: var(--tinta-3); font-size: 13.5px; margin: 0 0 16px; max-width: 76ch; }
+.caixa { background: var(--painel); border: 1px solid var(--linha); border-radius: var(--raio-g); padding: 20px; }
+
+/* ---------- trilhas de monetização (destaque) ---------- */
+.trilhas { display: grid; gap: 14px; }
+.trilha { display: grid; grid-template-columns: 180px 1fr 1fr; gap: 22px; align-items: center; padding: 20px 22px; border-radius: var(--raio-g);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--cor) 13%, var(--painel)) 0, var(--painel) 46%); border: 1px solid var(--linha); }
+.trilha .nome { font-family: var(--display); font-weight: 700; font-size: 19px; line-height: 1.15; }
+.trilha .nome small { display: block; font-family: var(--texto); font-weight: 400; font-size: 13px; color: var(--tinta-3); margin-top: 3px; }
+.meta-linha .rotulo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; color: var(--tinta-2); font-size: 13.5px; }
+.meta-linha .rotulo b { font-family: var(--display); font-size: 26px; color: var(--tinta); font-weight: 700; letter-spacing: -0.01em; }
+.meta-linha .rotulo b small { font-size: 14px; color: var(--tinta-3); font-weight: 500; }
+.barra { position: relative; height: 12px; background: var(--noite); border-radius: 6px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--linha); }
+.barra i { position: absolute; inset: 0 auto 0 0; width: 0; min-width: 3px; background: var(--cor); border-radius: 6px; transition: width 1.4s cubic-bezier(.2,.7,.1,1); }
+.marcos { display: flex; justify-content: space-between; color: var(--tinta-3); font-size: 11.5px; margin-top: 5px; }
+@media (prefers-reduced-motion: reduce) { .barra i { transition: none; } }
+
+/* ---------- indicadores ---------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi { background: var(--painel); border: 1px solid var(--linha); border-radius: var(--raio-m); padding: 16px 16px 14px; }
+.kpi .t { color: var(--tinta-2); font-size: 13.5px; }
+.kpi .v { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.15; margin: 6px 0 4px; letter-spacing: -0.01em; }
+.kpi .d { font-size: 13px; color: var(--tinta-3); }
+.kpi .d .sobe { color: var(--bom); } .kpi .d .desce { color: var(--ruim); }
+.kpi.vazio .v { color: var(--tinta-3); font-size: 20px; }
+
+/* ---------- grades e gráficos ---------- */
+.grade-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grade-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grafico { height: 300px; width: 100%; }
+.grafico.alto { height: 360px; }
+.grafico.vazio { height: auto; }
+.caixa h3 { font-family: var(--display); font-size: 16.5px; font-weight: 700; margin: 0 0 2px; }
+.caixa .ajuda { color: var(--tinta-3); font-size: 13px; margin: 0 0 10px; }
+.sem-dados { height: 100%; min-height: 160px; display: grid; place-items: center; text-align: center; color: var(--tinta-3); font-size: 14px; padding: 16px;
+  border: 1px dashed var(--linha-forte); border-radius: var(--raio-m); }
+.sem-dados b { display: block; color: var(--tinta-2); font-weight: 600; margin-bottom: 4px; }
+.alternar { float: right; }
+
+/* ---------- tabela de vídeos ---------- */
+.tabela-envolve { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; color: var(--tinta-3); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--linha); white-space: nowrap; cursor: pointer; user-select: none; }
+th.num, td.num { text-align: right; }
+td { padding: 10px; border-bottom: 1px solid var(--linha); vertical-align: middle; }
+tr:hover td { background: var(--painel-2); }
+.vid { display: flex; gap: 12px; align-items: center; min-width: 280px; }
+.vid img { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; flex: none; background: var(--noite); }
+.vid .tt { font-weight: 500; line-height: 1.3; }
+.vid .mt { color: var(--tinta-3); font-size: 12.5px; }
+.etiqueta { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--painel-2); color: var(--tinta-2); border: 1px solid var(--linha); }
+
+/* ---------- análise ---------- */
+.resumo { font-size: 16.5px; line-height: 1.6; max-width: 78ch; }
+.canal-analise { border-left: 3px solid var(--cor); padding: 4px 0 4px 16px; margin-top: 18px; }
+.canal-analise h3 { margin-bottom: 6px; }
+.colunas-pm { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+.colunas-pm h4 { margin: 0 0 6px; font-size: 14px; color: var(--tinta-2); font-weight: 600; }
+.colunas-pm ul { margin: 0; padding-left: 18px; color: var(--tinta-2); }
+.colunas-pm li { margin-bottom: 4px; }
+.sug { border: 1px solid var(--linha); border-radius: var(--raio-m); padding: 16px 18px; background: var(--painel); margin-bottom: 10px; }
+.sug-topo { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.sug h4 { font-family: var(--display); font-size: 17px; margin: 8px 0 6px; }
+.sug p { margin: 4px 0; color: var(--tinta-2); max-width: 80ch; }
+.estado { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; font-weight: 600; }
+.estado.pendente { background: #2A2F45; color: var(--tinta-2); }
+.estado.aprovada { background: color-mix(in srgb, var(--bom) 22%, transparent); color: #8FE0B8; }
+.estado.reprovada { background: color-mix(in srgb, var(--ruim) 20%, transparent); color: #F4A3AA; }
+.estado.expirada { background: #262B3B; color: var(--tinta-3); }
+.estado.recuo { background: color-mix(in srgb, var(--atencao) 20%, transparent); color: #F1CD85; }
+.lista-simples { margin: 0; padding-left: 18px; color: var(--tinta-2); }
+.lista-simples li { margin-bottom: 6px; }
+.fin { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.fin .kpi .v { color: var(--tinta-3); }
+.auditoria-ok { color: var(--bom); font-weight: 600; }
+footer { color: var(--tinta-3); font-size: 13px; border-top: 1px solid var(--linha); padding-top: 18px; }
+
+@media (max-width: 900px) {
+  .trilha { grid-template-columns: 1fr; gap: 14px; }
+  .grade-2, .grade-3, .colunas-pm { grid-template-columns: 1fr; }
+  #app { padding: 18px 16px 60px; }
+  .filtros { gap: 8px 12px; }
+}
+</style>
+</head>
+<body>
+
+<div id="porta">
+  <form class="porta-caixa" id="form-senha" autocomplete="off">
+    <div class="porta-trilhas"><span style="background:var(--dindin)"></span><span style="background:var(--oracao)"></span><span style="background:var(--soninho)"></span></div>
+    <h1>Painel dos canais</h1>
+    <p>Dindin com Ciência, Oração do Dia e Soninho Bão. Os dados ficam criptografados; digite a senha para abrir.</p>
+    <div class="campo">
+      <input type="password" id="senha" placeholder="Senha" aria-label="Senha" autofocus>
+      <button class="botao" id="abrir" type="submit">Abrir</button>
+    </div>
+    <div id="erro-senha" role="alert"></div>
+  </form>
+</div>
+
+<main id="app" class="oculto">
+  <header class="topo">
+    <div>
+      <h1>Painel dos canais</h1>
+      <div class="subtitulo" id="subtitulo"></div>
+    </div>
+  </header>
+
+  <nav class="filtros" aria-label="Filtros">
+    <div class="grupo"><span>Canal</span><div class="seg" id="f-canal"></div></div>
+    <div class="grupo"><span>Período</span><div class="seg" id="f-periodo"></div></div>
+    <div class="grupo"><span>Formato</span><div class="seg" id="f-formato"></div></div>
+    <div class="grupo"><span>Vídeo</span><select class="escolha" id="f-video" aria-label="Vídeo"></select></div>
+  </nav>
+
+  <section>
+    <h2>Rumo à monetização</h2>
+    <p class="nota-sec">Cada canal precisa de 1.000 inscritos e 4.000 horas de exibição pública em 12 meses. Os números de um canal não contam para outro.</p>
+    <div class="trilhas" id="trilhas"></div>
+  </section>
+
+  <section>
+    <h2 id="titulo-kpis">Desempenho</h2>
+    <p class="nota-sec" id="nota-kpis"></p>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section>
+    <div class="caixa">
+      <div class="seg alternar" id="f-metrica"></div>
+      <h3>Evolução diária</h3>
+      <p class="ajuda" id="ajuda-serie"></p>
+      <div class="grafico alto" id="g-serie"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Vídeos</h2>
+    <p class="nota-sec">Desempenho de cada vídeo no período. Clique no título de uma coluna para ordenar.</p>
+    <div class="caixa tabela-envolve"><table id="tabela-videos"></table></div>
+  </section>
+
+  <section id="sec-retencao">
+    <div class="caixa">
+      <h3>Retenção do vídeo</h3>
+      <p class="ajuda">Quanto do público continua assistindo em cada ponto do vídeo (últimos 90 dias). Escolha um vídeo no filtro acima.</p>
+      <div class="grafico" id="g-retencao"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Público</h2>
+    <p class="nota-sec" id="nota-publico">Quem assiste, de onde vem e em que aparelho. O YouTube só libera idade e sexo quando o canal tem público suficiente.</p>
+    <div id="publico"></div>
+  </section>
+
+  <section>
+    <h2>Análise da semana</h2>
+    <p class="nota-sec">Escrita pelo Analista a partir dos dados auditados. Todo número do texto é conferido contra os dados antes de publicar.</p>
+    <div class="caixa" id="analise"></div>
+  </section>
+
+  <section>
+    <h2>Sugestões</h2>
+    <p class="nota-sec">Aprove ou reprove pelo Telegram. Sem resposta em 24 horas, nada muda.</p>
+    <div id="sugestoes"></div>
+  </section>
+
+  <section id="sec-pendencias">
+    <h2>Pendências</h2>
+    <div class="caixa"><ul class="lista-simples" id="pendencias"></ul></div>
+  </section>
+
+  <section>
+    <h2>Financeiro</h2>
+    <p class="nota-sec">A receita aparece aqui automaticamente quando o canal entrar no Programa de Parcerias do YouTube.</p>
+    <div class="fin" id="financeiro"></div>
+  </section>
+
+  <section>
+    <h2>Auditoria dos dados</h2>
+    <p class="nota-sec">Conferências feitas antes da publicação: canal certo, somas diárias iguais aos totais do YouTube, porcentagens fechando em 100%, sem valores negativos.</p>
+    <div class="caixa" id="auditoria"></div>
+  </section>
+
+  <footer id="rodape"></footer>
+</main>
+
+<script>
+"use strict";
+const CANAIS = { financas: { nome: "Dindin com Ciência", curto: "Dindin", cor: "#22A97F" },
+                 oracao: { nome: "Oração do Dia", curto: "Oração", cor: "#C07F14" },
+                 soninho: { nome: "Soninho Bão", curto: "Soninho", cor: "#8B6CEB" } };
+const ORDEM = ["financas", "oracao", "soninho"];
+const TXT = { tinta: "#E9EDF6", t2: "#B4BCD0", t3: "#7F89A3", linha: "#242E47", painel: "#141B2D" };
+const METRICAS_SERIE = { views: "Views", horas: "Horas", inscritos: "Inscritos líquidos" };
+const NOMES_DISPOSITIVO = { MOBILE: "Celular", DESKTOP: "Computador", TABLET: "Tablet", TV: "Televisão", GAME_CONSOLE: "Videogame", UNKNOWN_PLATFORM: "Desconhecido" };
+const NOMES_TRAFEGO = { YT_SEARCH: "Busca do YouTube", RELATED_VIDEO: "Vídeos sugeridos", BROWSE: "Página inicial e inscrições", EXT_URL: "Sites e apps externos",
+  NO_LINK_OTHER: "Direto ou desconhecido", PLAYLIST: "Playlists", YT_CHANNEL: "Página do canal", SUBSCRIBER: "Feed de inscrições", NOTIFICATION: "Notificações",
+  SHORTS: "Feed de Shorts", END_SCREEN: "Telas finais", ANNOTATION: "Cards e anotações", YT_OTHER_PAGE: "Outras páginas do YouTube", HASHTAGS: "Hashtags",
+  SOUND_PAGE: "Página de sons", CAMPAIGN_CARD: "Campanhas", ADVERTISING: "Anúncios", VIDEO_REMIXES: "Remixes", IMMERSIVE_LIVE: "Ao vivo", LIVE_REDIRECT: "Redirecionamento ao vivo", PRODUCT_PAGE: "Página de produto" };
+const NOMES_IDADE = { "age13-17": "13–17", "age18-24": "18–24", "age25-34": "25–34", "age35-44": "35–44", "age45-54": "45–54", "age55-64": "55–64", "age65-": "65+" };
+const NOMES_SISTEMA = { ANDROID: "Android", IOS: "iOS", WINDOWS: "Windows", MACINTOSH: "macOS", LINUX: "Linux", CHROMECAST: "Chromecast", SMART_TV: "Smart TV", PLAYSTATION: "PlayStation", XBOX: "Xbox", NINTENDO: "Nintendo", KAIOS: "KaiOS", TIZEN: "Tizen", WEBOS: "webOS", ROKU: "Roku", FIRE_OS: "Fire OS", OTHER: "Outros" };
+const NOMES_INSCRITO = { SUBSCRIBED: "Inscritos", UNSUBSCRIBED: "Não inscritos" };
+const REGIAO = new Intl.DisplayNames(["pt-BR"], { type: "region" });
+
+let D = null;
+const estado = { canal: "todos", periodo: "7", formato: "todos", video: "", metrica: "views", ordem: { campo: "views", desc: true } };
+const graficos = {};
+
+/* ---------- utilidades ---------- */
+const fmt = (v, casas = 0) => v == null || Number.isNaN(v) ? "—" : v.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
+const fmtData = s => { const [a, m, d] = s.split("-"); return `${d}/${m}/${a}`; };
+const fmtCurta = s => { const [, m, d] = s.split("-"); return `${d}/${m}`; };
+const el = (tag, attrs = {}, ...filhos) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === "html") e.innerHTML = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v); } for (const f of filhos) if (f != null) e.append(f); return e; };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const canaisAtivos = () => estado.canal === "todos" ? ORDEM : [estado.canal];
+const semDados = (titulo, texto) => el("div", { class: "sem-dados", html: `<div><b>${esc(titulo)}</b>${esc(texto)}</div>` });
+const duracaoSeg = iso => { const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso || ""); return m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : 0; };
+const ehShort = v => duracaoSeg(v.duracao) <= 180;
+
+/* ---------- criptografia (AES-GCM + PBKDF2, igual ao relatorio.py) ---------- */
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function abrir(pacote, senha) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveKey"]);
+  const chave = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b64(pacote.sal), iterations: pacote.iter, hash: "SHA-256" },
+                                              base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  const claro = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(pacote.iv) }, chave, b64(pacote.dados));
+  return JSON.parse(new TextDecoder().decode(claro));
+}
+
+document.getElementById("form-senha").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const botao = document.getElementById("abrir"), erro = document.getElementById("erro-senha");
+  botao.disabled = true; erro.textContent = "";
+  try {
+    const pacote = await (await fetch("dados.json", { cache: "no-store" })).json();
+    iniciar(await abrir(pacote, document.getElementById("senha").value));
+    try { sessionStorage.setItem("painel-ok", "1"); } catch (_) {}
+  } catch (e) {
+    erro.textContent = "Senha incorreta ou dados indisponíveis. Confira a senha e tente de novo.";
+  } finally { botao.disabled = false; }
+});
+
+/* ---------- dados derivados (somas simples; nada é estimado) ---------- */
+function totaisPeriodo(cid) {
+  const c = D.canais[cid], p = c.periodos[estado.periodo];
+  if (estado.video) {
+    const linha = p.por_video.find(v => v.id === estado.video);
+    return { atual: linha ? { views: linha.views, horas: linha.horas, inscritos_liquidos: linha.inscritos_ganhos - linha.inscritos_perdidos,
+      curtidas: linha.curtidas, comentarios: linha.comentarios, compartilhamentos: linha.compartilhamentos, averageViewDuration: linha.averageViewDuration,
+      averageViewPercentage: linha.averageViewPercentage } : null, anterior: null };
+  }
+  if (estado.formato !== "todos") {
+    const s = c.serie_formato[estado.formato];
+    const soma = (ini, fim) => { if (!s) return { views: 0, horas: 0, inscritos_ganhos: 0 }; let v = 0, m = 0, i = 0;
+      s.dias.forEach((d, k) => { if (d >= ini && d <= fim) { v += s.views[k]; m += s.minutos[k]; i += s.inscritos_ganhos[k]; } });
+      return { views: v, horas: Math.round(m / 6) / 10, inscritos_ganhos: i }; };
+    return { atual: soma(p.inicio, p.fim), anterior: soma(p.inicio_anterior, p.fim_anterior), parcial: true };
+  }
+  return { atual: p.totais, anterior: p.anterior };
+}
+
+function somaCanais(campo, qual) {
+  let total = 0, algum = false;
+  for (const cid of canaisAtivos()) { const t = totaisPeriodo(cid)[qual]; if (t && t[campo] != null) { total += t[campo]; algum = true; } }
+  return algum ? Math.round(total * 10) / 10 : null;
+}
+
+/* ---------- filtros ---------- */
+function montarFiltros() {
+  const seg = (id, opcoes, chave, depois) => {
+    const caixa = document.getElementById(id); caixa.innerHTML = "";
+    for (const [valor, rotulo, cor] of opcoes) {
+      const b = el("button", { type: "button", "aria-pressed": String(estado[chave] === valor), onclick: () => { estado[chave] = valor; if (depois) depois(); desenhar(); } });
+      if (cor) b.append(el("span", { class: "bola", style: `background:${cor}` }));
+      b.append(rotulo); caixa.append(b);
+    }
+  };
+  seg("f-canal", [["todos", "Todos"], ...ORDEM.map(c => [c, CANAIS[c].curto, CANAIS[c].cor])], "canal", () => { estado.video = ""; });
+  seg("f-periodo", D.periodos.map(p => [p, `${p} dias`]), "periodo");
+  seg("f-formato", [["todos", "Todos"], ["longo", "Longos"], ["shorts", "Shorts"]], "formato", () => { estado.video = ""; });
+  seg("f-metrica", Object.entries(METRICAS_SERIE), "metrica");
+  const sel = document.getElementById("f-video"); sel.innerHTML = "";
+  sel.append(el("option", { value: "" }, "Todos os vídeos"));
+  for (const cid of canaisAtivos()) for (const v of D.canais[cid].videos) {
+    if (estado.formato === "shorts" && !ehShort(v)) continue;
+    if (estado.formato === "longo" && ehShort(v)) continue;
+    const o = el("option", { value: v.id }, (estado.canal === "todos" ? CANAIS[cid].curto + ": " : "") + v.titulo);
+    if (v.id === estado.video) o.selected = true; sel.append(o);
+  }
+  sel.onchange = () => { estado.video = sel.value; desenhar(); };
+}
+
+/* ---------- seções ---------- */
+function desenharTrilhas() {
+  const caixa = document.getElementById("trilhas"); caixa.innerHTML = "";
+  for (const cid of canaisAtivos()) {
+    const c = D.canais[cid], m = c.metas;
+    const pctI = m.inscritos == null ? 0 : Math.min(100, m.inscritos / m.inscritos_meta * 100);
+    const pctH = Math.min(100, m.horas_12m / m.horas_meta * 100);
+    const linha = (rotulo, valor, meta, pct, casas) => `<div class="meta-linha"><div class="rotulo"><span>${rotulo}</span>
+        <b>${fmt(valor, casas)} <small>de ${fmt(meta)}</small></b></div>
+        <div class="barra" role="progressbar" aria-valuenow="${pct.toFixed(1)}" aria-valuemin="0" aria-valuemax="100" aria-label="${rotulo}: ${fmt(pct, 1)}%"><i data-pct="${pct}"></i></div>
+        <div class="marcos"><span>${fmt(pct, 1)}% da meta</span><span>faltam ${fmt(Math.max(0, meta - (valor || 0)), casas)}</span></div></div>`;
+    caixa.append(el("div", { class: "trilha", style: `--cor:${CANAIS[cid].cor}`, html:
+      `<div class="nome">${esc(c.nome)}<small>${fmt(c.videos.length)} ${c.videos.length === 1 ? "vídeo público" : "vídeos públicos"}</small></div>` +
+      linha("Inscritos", m.inscritos, m.inscritos_meta, pctI, 0) + linha("Horas de exibição (12 meses)", m.horas_12m, m.horas_meta, pctH, 1) }));
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => caixa.querySelectorAll(".barra i").forEach(i => i.style.width = i.dataset.pct + "%")));
+}
+
+function desenharKpis() {
+  const p = D.canais[canaisAtivos()[0]].periodos[estado.periodo];
+  const vid = estado.video;
+  document.getElementById("titulo-kpis").textContent = vid ? "Desempenho do vídeo" : "Desempenho";
+  document.getElementById("nota-kpis").textContent =
+    `${fmtData(p.inicio)} a ${fmtData(p.fim)}` + (vid ? "." : `, comparado com ${fmtData(p.inicio_anterior)} a ${fmtData(p.fim_anterior)}.`) +
+    (estado.canal === "todos" && !vid ? " Soma dos três canais." : "") +
+    (estado.formato !== "todos" && !vid ? " Por formato, o YouTube informa só views, horas e inscritos ganhos." : "");
+  const cards = [
+    ["views", "Views", 0], ["horas", "Horas de exibição", 1],
+    [estado.formato !== "todos" && !vid ? "inscritos_ganhos" : "inscritos_liquidos", estado.formato !== "todos" && !vid ? "Inscritos ganhos" : "Inscritos líquidos", 0],
+    ["curtidas", "Curtidas", 0], ["comentarios", "Comentários", 0], ["compartilhamentos", "Compartilhamentos", 0]];
+  const caixa = document.getElementById("kpis"); caixa.innerHTML = "";
+  for (const [campo, rotulo, casas] of cards) {
+    const atual = somaCanais(campo, "atual"), anterior = vid ? null : somaCanais(campo, "anterior");
+    let delta = "sem comparação";
+    if (atual != null && anterior != null) {
+      if (anterior === 0) delta = atual > 0 ? `antes: 0` : "igual ao período anterior";
+      else if (atual === anterior) delta = `sem variação (${fmt(anterior, casas)})`;
+      else { const v = (atual - anterior) / anterior * 100; delta = `<span class="${v >= 0 ? "sobe" : "desce"}">${v >= 0 ? "▲" : "▼"} ${fmt(Math.abs(v), 1)}%</span> vs. ${fmt(anterior, casas)}`; }
+    }
+    caixa.append(el("div", { class: "kpi" + (atual == null ? " vazio" : ""), html:
+      `<div class="t">${rotulo}</div><div class="v">${atual == null ? "sem dados" : fmt(atual, casas)}</div><div class="d">${atual == null ? "indisponível neste recorte" : delta}</div>` }));
+  }
+  if (estado.canal !== "todos" || vid) {
+    const cid = canaisAtivos()[0], t = totaisPeriodo(cid).atual;
+    if (t && t.averageViewPercentage != null && estado.formato === "todos") {
+      caixa.append(el("div", { class: "kpi", html: `<div class="t">Retenção média</div><div class="v">${fmt(t.averageViewPercentage, 1)}%</div><div class="d">duração média ${fmt(t.averageViewDuration)} s</div>` }));
+    }
+  }
+}
+
+function eixoDatas(ini, fim) { const dias = []; for (let d = new Date(ini + "T12:00:00"); d <= new Date(fim + "T12:00:00"); d.setDate(d.getDate() + 1)) dias.push(d.toISOString().slice(0, 10)); return dias; }
+
+function temaBase() {
+  return { backgroundColor: "transparent", textStyle: { fontFamily: "Instrument Sans", color: TXT.t2 },
+    grid: { left: 8, right: 16, top: 36, bottom: 8, containLabel: true },
+    tooltip: { trigger: "axis", backgroundColor: "#1A2238", borderColor: "#34405F", textStyle: { color: TXT.tinta }, axisPointer: { type: "line", lineStyle: { color: "#34405F" } } } };
+}
+
+function grafico(id) { const alvo = document.getElementById(id); if (graficos[id]) { graficos[id].dispose(); } alvo.innerHTML = ""; alvo.classList.remove("vazio"); graficos[id] = echarts.init(alvo, null, { renderer: "svg" }); return graficos[id]; }
+function vazio(id, titulo, texto) { if (graficos[id]) { graficos[id].dispose(); delete graficos[id]; } const alvo = document.getElementById(id); alvo.innerHTML = ""; alvo.classList.add("vazio"); alvo.append(semDados(titulo, texto)); }
+
+function desenharSerie() {
+  const p = D.canais[canaisAtivos()[0]].periodos[estado.periodo];
+  const dias = eixoDatas(p.inicio, p.fim);
+  const ajuda = document.getElementById("ajuda-serie");
+  if (estado.video) { ajuda.textContent = "A série diária mostra o canal inteiro; o filtro de vídeo vale para os indicadores, a retenção e a tabela."; }
+  else ajuda.textContent = estado.canal === "todos" ? "Um traço por canal, sem somar: cada canal com a sua cor." : "Valores diários do canal no período.";
+  const series = [];
+  let algum = false;
+  for (const cid of canaisAtivos()) {
+    const c = D.canais[cid];
+    const fonte = estado.formato === "todos" ? c.serie : c.serie_formato[estado.formato];
+    if (estado.formato !== "todos" && estado.metrica === "inscritos" && fonte) { /* por formato só há inscritos ganhos */ }
+    const mapa = {};
+    if (fonte) fonte.dias.forEach((d, k) => {
+      let v;
+      if (estado.metrica === "views") v = fonte.views[k];
+      else if (estado.metrica === "horas") v = Math.round(fonte.minutos[k] / 6) / 10;
+      else v = estado.formato === "todos" ? fonte.inscritos_ganhos[k] - fonte.inscritos_perdidos[k] : fonte.inscritos_ganhos[k];
+      mapa[d] = v;
+    });
+    const valores = dias.map(d => mapa[d] ?? null);  // dia sem dado do YouTube = lacuna, nunca zero
+    if (valores.some(v => v)) algum = true;
+    series.push({ name: CANAIS[cid].curto, type: "line", data: valores, showSymbol: false, symbolSize: 8, smooth: 0.25,
+      lineStyle: { width: 2, color: CANAIS[cid].cor }, itemStyle: { color: CANAIS[cid].cor },
+      areaStyle: canaisAtivos().length === 1 ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: CANAIS[cid].cor + "40" }, { offset: 1, color: CANAIS[cid].cor + "00" }]) } : undefined });
+  }
+  if (!algum) { vazio("g-serie", "Ainda sem movimento registrado neste período", `O YouTube libera as métricas com cerca de ${D.atraso_dias} dias de atraso. Os primeiros vídeos saíram em 25/09; os números começam a aparecer nas próximas edições.`); return; }
+  const g = grafico("g-serie");
+  g.setOption({ ...temaBase(), legend: canaisAtivos().length > 1 ? { top: 0, left: 0, textStyle: { color: TXT.t2 }, icon: "roundRect", itemWidth: 12, itemHeight: 4 } : undefined,
+    grid: { left: 8, right: 16, top: 36, bottom: 8, containLabel: true },
+    xAxis: { type: "category", data: dias.map(fmtCurta), boundaryGap: false, axisLine: { lineStyle: { color: TXT.linha } }, axisLabel: { color: TXT.t3 }, axisTick: { show: false } },
+    yAxis: { type: "value", minInterval: estado.metrica === "horas" ? 0 : 1, splitLine: { lineStyle: { color: TXT.linha, type: [3, 4] } }, axisLabel: { color: TXT.t3 } },
+    series });
+}
+
+function linhasVideos() {
+  const linhas = [];
+  for (const cid of canaisAtivos()) {
+    const c = D.canais[cid], p = c.periodos[estado.periodo];
+    const porId = Object.fromEntries(p.por_video.map(v => [v.id, v]));
+    for (const v of c.videos) {
+      if (estado.formato === "shorts" && !ehShort(v)) continue;
+      if (estado.formato === "longo" && ehShort(v)) continue;
+      if (estado.video && v.id !== estado.video) continue;
+      const a = porId[v.id];
+      linhas.push({ cid, v, views: a ? a.views : null, horas: a ? a.horas : null, retencao: a ? a.averageViewPercentage : null,
+        inscritos: a ? a.inscritos_ganhos - a.inscritos_perdidos : null, curtidas: v.curtidas, comentarios: v.comentarios, publico_total: v.views });
+    }
+  }
+  const { campo, desc } = estado.ordem;
+  linhas.sort((x, y) => ((y[campo] ?? -1) - (x[campo] ?? -1)) * (desc ? 1 : -1));
+  return linhas;
+}
+
+function desenharTabela() {
+  const t = document.getElementById("tabela-videos"); t.innerHTML = "";
+  const cols = [["video", "Vídeo", false], ["views", "Views no período", true], ["horas", "Horas", true], ["retencao", "Retenção média", true],
+    ["inscritos", "Inscritos", true], ["publico_total", "Views totais", true], ["curtidas", "Curtidas", true], ["comentarios", "Comentários", true]];
+  const cab = el("tr");
+  for (const [campo, rotulo, num] of cols) {
+    const seta = estado.ordem.campo === campo ? (estado.ordem.desc ? " ▾" : " ▴") : "";
+    cab.append(el("th", { class: num ? "num" : "", scope: "col", onclick: () => { if (!num) return; estado.ordem = { campo, desc: estado.ordem.campo === campo ? !estado.ordem.desc : true }; desenharTabela(); } }, rotulo + seta));
+  }
+  t.append(el("thead", {}, cab));
+  const corpo = el("tbody"); const linhas = linhasVideos();
+  if (!linhas.length) { corpo.append(el("tr", {}, el("td", { colspan: cols.length }, "Nenhum vídeo público neste filtro."))); }
+  for (const l of linhas) {
+    const tr = el("tr");
+    tr.append(el("td", { html: `<div class="vid">${l.v.thumb ? `<img src="${esc(l.v.thumb)}" alt="" loading="lazy">` : ""}<div><div class="tt">${esc(l.v.titulo)}</div>
+      <div class="mt"><span class="etiqueta" style="border-color:${CANAIS[l.cid].cor}">${CANAIS[l.cid].curto}</span> publicado em ${fmtData(l.v.publicado.slice(0, 10))} ${ehShort(l.v) ? '<span class="etiqueta">Short</span>' : ""}</div></div></div>` }));
+    for (const [campo, casas, suf] of [["views", 0], ["horas", 1], ["retencao", 1, "%"], ["inscritos", 0], ["publico_total", 0], ["curtidas", 0], ["comentarios", 0]])
+      tr.append(el("td", { class: "num" }, l[campo] == null ? "—" : fmt(l[campo], casas) + (suf || "")));
+    corpo.append(tr);
+  }
+  t.append(corpo);
+}
+
+function desenharRetencao() {
+  const sec = document.getElementById("sec-retencao");
+  if (!estado.video) { vazio("g-retencao", "Escolha um vídeo", "Selecione um vídeo no filtro do topo para ver a curva de retenção."); return; }
+  let curva = null, cor = TXT.t2;
+  for (const cid of canaisAtivos()) if (D.canais[cid].retencao[estado.video]) { curva = D.canais[cid].retencao[estado.video]; cor = CANAIS[cid].cor; }
+  if (!curva) { vazio("g-retencao", "Retenção ainda indisponível", "O YouTube só mostra a curva depois que o vídeo acumula views suficientes."); return; }
+  const g = grafico("g-retencao");
+  g.setOption({ ...temaBase(), tooltip: { ...temaBase().tooltip, valueFormatter: v => fmt(v * 100, 1) + "%" },
+    xAxis: { type: "value", min: 0, max: 1, axisLabel: { color: TXT.t3, formatter: v => fmt(v * 100) + "%" }, splitLine: { show: false }, axisLine: { lineStyle: { color: TXT.linha } } },
+    yAxis: { type: "value", min: 0, axisLabel: { color: TXT.t3, formatter: v => fmt(v * 100) + "%" }, splitLine: { lineStyle: { color: TXT.linha, type: [3, 4] } } },
+    series: [{ type: "line", name: "Público assistindo", data: curva.map(l => [l.elapsedVideoTimeRatio, l.audienceWatchRatio]), showSymbol: false, lineStyle: { width: 2, color: cor },
+      areaStyle: { color: cor + "30" } }] });
+}
+
+function barrasH(id, itens, cor, sufixo = "", casas = 0) {
+  const g = grafico(id);
+  const ordenados = [...itens].sort((a, b) => a.valor - b.valor);
+  g.setOption({ ...temaBase(), tooltip: { trigger: "item", backgroundColor: "#1A2238", borderColor: "#34405F", textStyle: { color: TXT.tinta }, valueFormatter: v => fmt(v, casas) + sufixo },
+    grid: { left: 8, right: 48, top: 8, bottom: 8, containLabel: true },
+    xAxis: { type: "value", show: false }, yAxis: { type: "category", data: ordenados.map(i => i.nome), axisLabel: { color: TXT.t2 }, axisLine: { show: false }, axisTick: { show: false } },
+    series: [{ type: "bar", data: ordenados.map(i => i.valor), barMaxWidth: 16, itemStyle: { color: cor, borderRadius: [0, 4, 4, 0] },
+      label: { show: true, position: "right", color: TXT.t2, formatter: p => fmt(p.value, casas) + sufixo } }] });
+}
+
+function blocoPublico(cid, recorte, titulo, ajuda, montar) {
+  const c = D.canais[cid], p = c.periodos[estado.periodo], linhas = p[recorte];
+  const id = `g-${recorte}-${cid}`;
+  const caixa = el("div", { class: "caixa" }, el("h3", {}, titulo + (estado.canal === "todos" ? ` · ${CANAIS[cid].curto}` : "")), el("p", { class: "ajuda" }, ajuda), el("div", { class: "grafico", id }));
+  return { caixa, depois: () => {
+    if (linhas === null) return vazio(id, "Indisponível no YouTube", "A API do YouTube não devolveu este recorte nesta coleta. Ele volta automaticamente nas próximas edições.");
+    if (!linhas || !linhas.length) return vazio(id, "Ainda sem dados", "O YouTube libera este recorte quando o canal acumula público suficiente.");
+    montar(id, linhas, CANAIS[cid].cor);
+  } };
+}
+
+function desenharPublico() {
+  const caixa = document.getElementById("publico"); caixa.innerHTML = "";
+  const tarefas = [];
+  for (const cid of canaisAtivos()) {
+    if (estado.canal === "todos") caixa.append(el("h3", { style: `font-family:var(--display);margin:18px 0 10px;color:${CANAIS[cid].cor}` }, CANAIS[cid].nome));
+    const pp = D.canais[cid].periodos[estado.periodo];
+    if (["idade_sexo", "dispositivo", "sistema", "pais", "trafego", "inscrito"].every(k => !pp[k] || !pp[k].length)) {
+      caixa.append(semDados("Ainda sem dados de público neste período", "O YouTube libera idade, sexo, países, aparelhos e fontes de tráfego quando o canal acumula views suficientes. Os gráficos aparecem aqui automaticamente."));
+      continue;
+    }
+    const grade1 = el("div", { class: "grade-3" }), grade2 = el("div", { class: "grade-3", style: "margin-top:14px" }), grade3 = grade1;
+    const blocos = [
+      [grade1, blocoPublico(cid, "idade_sexo", "Idade e sexo", "Porcentagem das views por faixa etária", (id, linhas, cor) => {
+        const idades = Object.keys(NOMES_IDADE); const por = s => idades.map(a => { const l = linhas.find(x => x.ageGroup === a && x.gender === s); return l ? l.viewerPercentage : 0; });
+        const g = grafico(id); g.setOption({ ...temaBase(), legend: { top: 0, textStyle: { color: TXT.t2 } },
+          tooltip: { ...temaBase().tooltip, trigger: "axis", axisPointer: { type: "shadow" }, valueFormatter: v => fmt(v, 1) + "%" },
+          xAxis: { type: "category", data: idades.map(a => NOMES_IDADE[a]), axisLabel: { color: TXT.t3 }, axisLine: { lineStyle: { color: TXT.linha } }, axisTick: { show: false } },
+          yAxis: { type: "value", axisLabel: { color: TXT.t3, formatter: v => v + "%" }, splitLine: { lineStyle: { color: TXT.linha, type: [3, 4] } } },
+          series: [["female", "Mulheres", cor], ["male", "Homens", "#8E9AB8"], ["user_specified", "Outro", TXT.t3]].map(([s, n, c]) => ({ name: n, type: "bar", data: por(s), itemStyle: { color: c, borderRadius: [4, 4, 0, 0] }, barGap: "12%", barMaxWidth: 18 })) }); })],
+      [grade1, blocoPublico(cid, "dispositivo", "Aparelhos", "Views por tipo de aparelho", (id, l, cor) => barrasH(id, l.map(x => ({ nome: NOMES_DISPOSITIVO[x.deviceType] || x.deviceType, valor: x.views })), cor))],
+      [grade2, blocoPublico(cid, "trafego", "De onde vêm as views", "Fontes de tráfego", (id, l, cor) => barrasH(id, l.slice(0, 8).map(x => ({ nome: NOMES_TRAFEGO[x.insightTrafficSourceType] || x.insightTrafficSourceType, valor: x.views })), cor))],
+      [grade2, blocoPublico(cid, "pais", "Países", "Views por país (top 10)", (id, l, cor) => barrasH(id, l.slice(0, 10).map(x => { let n = x.country; try { n = REGIAO.of(x.country); } catch (_) {} return { nome: n, valor: x.views }; }), cor))],
+      [grade2, blocoPublico(cid, "sistema", "Sistema operacional", "Views por sistema", (id, l, cor) => barrasH(id, l.slice(0, 8).map(x => ({ nome: NOMES_SISTEMA[x.operatingSystem] || x.operatingSystem, valor: x.views })), cor))],
+      [grade3, blocoPublico(cid, "inscrito", "Inscritos e não inscritos", "Quem assiste já é inscrito?", (id, l, cor) => barrasH(id, l.map(x => ({ nome: NOMES_INSCRITO[x.subscribedStatus] || x.subscribedStatus, valor: x.views })), cor))],
+    ];
+    for (const [grade, b] of blocos) { grade.append(b.caixa); tarefas.push(b.depois); }
+    caixa.append(grade1, grade2);
+  }
+  tarefas.forEach(f => f());
+}
+
+function desenharAnalise() {
+  const caixa = document.getElementById("analise"); caixa.innerHTML = "";
+  const a = D.analise;
+  if (!a) { caixa.append(semDados("Análise escrita não publicada nesta edição", D.analise_descartada ? "O texto citava números que não existem nos dados e foi descartado pelo verificador. Os gráficos e indicadores acima continuam válidos." : "Sem análise disponível.")); return; }
+  caixa.append(el("p", { class: "resumo" }, a.resumo_geral));
+  for (const ca of a.canais) {
+    if (!canaisAtivos().includes(ca.canal)) continue;
+    const bloco = el("div", { class: "canal-analise", style: `--cor:${CANAIS[ca.canal].cor}` });
+    bloco.append(el("h3", {}, CANAIS[ca.canal].nome), el("p", { style: "margin:0;color:var(--tinta-2);max-width:80ch" }, ca.resumo));
+    const lista = itens => el("ul", {}, ...itens.map(i => el("li", {}, i)));
+    bloco.append(el("div", { class: "colunas-pm" }, el("div", {}, el("h4", {}, "O que está indo bem"), lista(ca.positivos)), el("div", {}, el("h4", {}, "O que melhorar"), lista(ca.melhorar))));
+    caixa.append(bloco);
+  }
+  if (a.observacoes_dados?.length) {
+    caixa.append(el("h4", { style: "margin:22px 0 6px;color:var(--tinta-2);font-size:14px" }, "Limitações dos dados desta semana"), el("ul", { class: "lista-simples" }, ...a.observacoes_dados.map(o => el("li", {}, o))));
+  }
+}
+
+function desenharSugestoes() {
+  const caixa = document.getElementById("sugestoes"); caixa.innerHTML = "";
+  const hist = (D.sugestoes_historico || []).filter(s => s.canal === "todos" || canaisAtivos().includes(s.canal));
+  if (!hist.length) { caixa.append(semDados("Nenhuma sugestão até agora", "O Analista só sugere mudanças quando os dados sustentam.")); return; }
+  const rotuloEstado = { pendente: "Aguardando você", aprovada: "Aprovada e aplicada", reprovada: "Reprovada", expirada: "Expirou sem resposta", recuo: "Analista recuou" };
+  for (const s of [...hist].reverse()) {
+    const cor = CANAIS[s.canal]?.cor || TXT.t2;
+    caixa.append(el("article", { class: "sug", html: `<div class="sug-topo"><span class="etiqueta" style="border-color:${cor}">${esc(CANAIS[s.canal]?.nome || "Todos os canais")}</span>
+      <span class="estado ${esc(s.estado)}">${rotuloEstado[s.estado] || esc(s.estado)}</span></div>
+      <h4>${esc(s.titulo)}</h4><p>${esc(s.justificativa)}</p><p><strong style="color:var(--tinta)">Ação:</strong> ${esc(s.acao)}</p>
+      ${s.situacao === "recuo" && s.motivo_recuo ? `<p><strong style="color:var(--tinta)">Por que recuou:</strong> ${esc(s.motivo_recuo)}</p>` : ""}
+      <p style="font-size:12.5px;color:var(--tinta-3)">Sugerida em ${fmtData(s.data)}${s.situacao === "mantida" ? " (mantida de edição anterior)" : ""}</p>` }));
+  }
+}
+
+function desenharResto() {
+  const pend = document.getElementById("pendencias"); pend.innerHTML = "";
+  const itens = D.pendencias || [];
+  document.getElementById("sec-pendencias").classList.toggle("oculto", !itens.length);
+  itens.forEach(p => pend.append(el("li", {}, p)));
+
+  const fin = document.getElementById("financeiro"); fin.innerHTML = "";
+  for (const cid of canaisAtivos()) fin.append(el("div", { class: "kpi", style: `border-top:3px solid ${CANAIS[cid].cor}`, html:
+    `<div class="t">${esc(CANAIS[cid].nome)}</div><div class="v">Aguardando monetização</div><div class="d">Receita estimada, RPM e receita por vídeo aparecem aqui após a aprovação no Programa de Parcerias.</div>` }));
+  const outras = D.financeiro?.outras_receitas || [];
+  fin.append(el("div", { class: "kpi", html: `<div class="t">Outras receitas</div><div class="v">${outras.length ? fmt(outras.reduce((s, o) => s + o.valor, 0), 2) : "Nenhuma registrada"}</div><div class="d">Registradas manualmente pelo João.</div>` }));
+
+  const aud = document.getElementById("auditoria"); aud.innerHTML = "";
+  const avisos = canaisAtivos().flatMap(cid => D.canais[cid].auditoria_avisos.map(a => [cid, a]));
+  aud.append(el("p", { html: `<span class="auditoria-ok">Nenhum bloqueio.</span> Os totais do YouTube batem com as somas diárias em todos os períodos e canais.` }));
+  if (avisos.length) aud.append(el("p", { style: "color:var(--tinta-2);margin-bottom:6px" }, "Avisos:"), el("ul", { class: "lista-simples" }, ...avisos.map(([cid, a]) => el("li", {}, `${CANAIS[cid].curto}: ${a.replace(/^\w+\s/, "")}`))));
+
+  document.getElementById("rodape").innerHTML = `Dados do YouTube Analytics e da YouTube Data API, coletados em ${fmtData(D.gerado_em)} às ${esc(D.gerado_hora)}.
+    As métricas do Analytics vão até ${fmtData(D.janela_fim)} (o YouTube libera com cerca de ${D.atraso_dias} dias de atraso); inscritos e views totais são os números públicos do momento da coleta.
+    Horas de exibição da meta: horas de vídeos longos nos últimos 12 meses segundo o Analytics; a referência oficial para a monetização é o YouTube Studio.`;
+}
+
+function desenhar() {
+  montarFiltros(); desenharTrilhas(); desenharKpis(); desenharSerie(); desenharTabela(); desenharRetencao(); desenharPublico(); desenharAnalise(); desenharSugestoes(); desenharResto();
+}
+
+function iniciar(dados) {
+  D = dados;
+  document.getElementById("porta").classList.add("oculto");
+  document.getElementById("app").classList.remove("oculto");
+  document.getElementById("subtitulo").innerHTML = `Edição de <strong>${fmtData(D.gerado_em)}</strong>. Métricas até ${fmtData(D.janela_fim)}.`;
+  desenhar();
+  addEventListener("resize", () => Object.values(graficos).forEach(g => g.resize()));
+}
+</script>
+</body>
+</html>
