@@ -394,6 +394,20 @@ function desenharKpis() {
     caixa.append(el("div", { class: "kpi" + (atual == null ? " vazio" : ""), html:
       `<div class="t">${rotulo}</div><div class="v">${atual == null ? "sem dados" : fmt(atual, casas)}</div><div class="d">${atual == null ? "indisponível neste recorte" : delta}</div>` }));
   }
+  // impressões e CTR (relatório de alcance do YouTube); CTR combinado = cliques / impressões
+  let imp = 0, cliques = 0, comDados = false;
+  for (const cid of canaisAtivos()) {
+    const alc = D.canais[cid].periodos[estado.periodo].alcance;
+    if (!alc || !alc.dias_com_dados) continue;
+    const fonte = vid ? alc.por_video[vid] : alc;
+    if (!fonte) continue;
+    comDados = true; imp += fonte.impressoes; cliques += fonte.impressoes * (fonte.ctr || 0) / 100;
+  }
+  if (estado.formato === "todos") {
+    const espera = "o YouTube gera este relatório até 48 h depois de ativado";
+    caixa.append(el("div", { class: "kpi" + (comDados ? "" : " vazio"), html: `<div class="t">Impressões da thumbnail</div><div class="v">${comDados ? fmt(imp) : "aguardando"}</div><div class="d">${comDados ? "vezes que a thumbnail apareceu" : espera}</div>` }));
+    caixa.append(el("div", { class: "kpi" + (comDados && imp ? "" : " vazio"), html: `<div class="t">CTR</div><div class="v">${comDados && imp ? fmt(cliques / imp * 100, 1) + "%" : "aguardando"}</div><div class="d">${comDados ? "cliques por impressão" : espera}</div>` }));
+  }
   if (estado.canal !== "todos" || vid) {
     const cid = canaisAtivos()[0], t = totaisPeriodo(cid).atual;
     if (t && t.averageViewPercentage != null && estado.formato === "todos") {
@@ -458,8 +472,10 @@ function linhasVideos() {
       if (estado.formato === "longo" && ehShort(v)) continue;
       if (estado.video && v.id !== estado.video) continue;
       const a = porId[v.id];
+      const alc = p.alcance && p.alcance.por_video ? p.alcance.por_video[v.id] : null;
       linhas.push({ cid, v, views: a ? a.views : null, horas: a ? a.horas : null, retencao: a ? a.averageViewPercentage : null,
-        inscritos: a ? a.inscritos_ganhos - a.inscritos_perdidos : null, curtidas: v.curtidas, comentarios: v.comentarios, publico_total: v.views });
+        inscritos: a ? a.inscritos_ganhos - a.inscritos_perdidos : null,
+        impressoes: alc ? alc.impressoes : null, ctr: alc ? alc.ctr : null, curtidas: v.curtidas, comentarios: v.comentarios, publico_total: v.views });
     }
   }
   const { campo, desc } = estado.ordem;
@@ -469,7 +485,7 @@ function linhasVideos() {
 
 function desenharTabela() {
   const t = document.getElementById("tabela-videos"); t.innerHTML = "";
-  const cols = [["video", "Vídeo", false], ["views", "Views no período", true], ["horas", "Horas", true], ["retencao", "Retenção média", true],
+  const cols = [["video", "Vídeo", false], ["views", "Views no período", true], ["horas", "Horas", true], ["retencao", "Retenção média", true], ["impressoes", "Impressões", true], ["ctr", "CTR", true],
     ["inscritos", "Inscritos", true], ["publico_total", "Views totais", true], ["curtidas", "Curtidas", true], ["comentarios", "Comentários", true]];
   const cab = el("tr");
   for (const [campo, rotulo, num] of cols) {
@@ -483,7 +499,7 @@ function desenharTabela() {
     const tr = el("tr");
     tr.append(el("td", { html: `<div class="vid">${l.v.thumb ? `<img src="${esc(l.v.thumb)}" alt="" loading="lazy">` : ""}<div><div class="tt">${esc(l.v.titulo)}</div>
       <div class="mt"><span class="etiqueta" style="border-color:${CANAIS[l.cid].cor}">${CANAIS[l.cid].curto}</span> publicado em ${fmtData(l.v.publicado.slice(0, 10))} ${ehShort(l.v) ? '<span class="etiqueta">Short</span>' : ""}</div></div></div>` }));
-    for (const [campo, casas, suf] of [["views", 0], ["horas", 1], ["retencao", 1, "%"], ["inscritos", 0], ["publico_total", 0], ["curtidas", 0], ["comentarios", 0]])
+    for (const [campo, casas, suf] of [["views", 0], ["horas", 1], ["retencao", 1, "%"], ["impressoes", 0], ["ctr", 1, "%"], ["inscritos", 0], ["publico_total", 0], ["curtidas", 0], ["comentarios", 0]])
       tr.append(el("td", { class: "num" }, l[campo] == null ? "—" : fmt(l[campo], casas) + (suf || "")));
     corpo.append(tr);
   }
