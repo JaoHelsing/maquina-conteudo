@@ -135,6 +135,34 @@ tr:hover td { background: var(--painel-2); }
 .auditoria-ok { color: var(--bom); font-weight: 600; }
 footer { color: var(--tinta-3); font-size: 13px; border-top: 1px solid var(--linha); padding-top: 18px; }
 
+/* ---------- abas ---------- */
+.abas { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--linha); margin-bottom: 22px; scrollbar-width: thin; }
+.abas button { border: 0; background: transparent; padding: 10px 14px; cursor: pointer; color: var(--tinta-2); font-size: 14.5px; white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.abas button[aria-selected="true"] { color: var(--tinta); border-bottom-color: var(--tinta); font-weight: 600; }
+.abas .cont { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; border-radius: 999px; background: var(--painel-2); font-size: 12px; color: var(--tinta-2); }
+.abas .cont.grave { background: color-mix(in srgb, var(--ruim) 28%, transparent); color: #F4A3AA; }
+.cartao { border: 1px solid var(--linha); border-radius: var(--raio-m); padding: 16px 18px; background: var(--painel); margin-bottom: 10px; }
+.cartao h4 { font-family: var(--display); font-size: 16.5px; margin: 6px 0 6px; line-height: 1.3; }
+.cartao p { margin: 4px 0; color: var(--tinta-2); max-width: 82ch; }
+.cartao .meta { font-size: 12.5px; color: var(--tinta-3); }
+.cartao a { color: #9DB4FF; }
+.cartao ol { margin: 6px 0 0; padding-left: 20px; color: var(--tinta-2); }
+.cartao ol li { margin-bottom: 4px; }
+.cartao.grave { border-left: 3px solid var(--ruim); } .cartao.importante { border-left: 3px solid var(--atencao); } .cartao.melhoria { border-left: 3px solid #E9D36B; }
+.chip { display: inline-block; font-size: 12px; padding: 2px 9px; border-radius: 999px; font-weight: 600; background: var(--painel-2); color: var(--tinta-2); }
+.chip.ajuda, .chip.ok { background: color-mix(in srgb, var(--bom) 22%, transparent); color: #8FE0B8; }
+.chip.atrapalha, .chip.ruim { background: color-mix(in srgb, var(--ruim) 20%, transparent); color: #F4A3AA; }
+.chip.atencao { background: color-mix(in srgb, var(--atencao) 20%, transparent); color: #F1CD85; }
+.botao-resolvido { display: inline-block; margin-top: 10px; background: var(--tinta); color: var(--noite) !important; text-decoration: none; padding: 8px 14px; border-radius: var(--raio-p); font-weight: 600; font-size: 14px; }
+details.resolvidos summary { cursor: pointer; color: var(--tinta-2); margin: 14px 0 10px; }
+.dias { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.dia h3 { font-family: var(--display); font-size: 16px; margin: 0 0 10px; }
+.dia ul { list-style: none; margin: 0; padding: 0; }
+.dia li { padding: 8px 0; border-top: 1px solid var(--linha); font-size: 14px; color: var(--tinta-2); }
+.dia li b { color: var(--tinta); font-weight: 600; }
+.dia .serie { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
 @media (max-width: 900px) {
   .trilha { grid-template-columns: 1fr; gap: 14px; }
   .grade-2, .grade-3, .colunas-pm { grid-template-columns: 1fr; }
@@ -166,6 +194,9 @@ footer { color: var(--tinta-3); font-size: 13px; border-top: 1px solid var(--lin
     </div>
   </header>
 
+  <nav class="abas" role="tablist" aria-label="Abas do relatório" id="abas"></nav>
+
+  <div class="aba" data-aba="numeros" role="tabpanel">
   <nav class="filtros" aria-label="Filtros">
     <div class="grupo"><span>Canal</span><div class="seg" id="f-canal"></div></div>
     <div class="grupo"><span>Período</span><div class="seg" id="f-periodo"></div></div>
@@ -214,6 +245,9 @@ footer { color: var(--tinta-3); font-size: 13px; border-top: 1px solid var(--lin
     <div id="publico"></div>
   </section>
 
+  </div>
+
+  <div class="aba oculto" data-aba="sugestoes" role="tabpanel">
   <section>
     <h2>Análise da semana</h2>
     <p class="nota-sec">Escrita pelo Analista a partir dos dados auditados. Todo número do texto é conferido contra os dados antes de publicar.</p>
@@ -226,11 +260,9 @@ footer { color: var(--tinta-3); font-size: 13px; border-top: 1px solid var(--lin
     <div id="sugestoes"></div>
   </section>
 
-  <section id="sec-pendencias">
-    <h2>Pendências</h2>
-    <div class="caixa"><ul class="lista-simples" id="pendencias"></ul></div>
-  </section>
+  </div>
 
+  <div class="aba" data-aba="numeros">
   <section>
     <h2>Financeiro</h2>
     <p class="nota-sec">A receita aparece aqui automaticamente quando o canal entrar no Programa de Parcerias do YouTube.</p>
@@ -242,6 +274,43 @@ footer { color: var(--tinta-3); font-size: 13px; border-top: 1px solid var(--lin
     <p class="nota-sec">Conferências feitas antes da publicação: canal certo, somas diárias iguais aos totais do YouTube, porcentagens fechando em 100%, sem valores negativos.</p>
     <div class="caixa" id="auditoria"></div>
   </section>
+  </div>
+
+  <div class="aba oculto" data-aba="novidades" role="tabpanel">
+  <section>
+    <h2>Novidades do YouTube</h2>
+    <p class="nota-sec">Pesquisadas na internet no domingo de manhã (últimos 7 dias). Toda novidade tem link e data conferidos e não repete as de domingos anteriores.</p>
+    <div id="novidades"></div>
+  </section>
+  </div>
+
+  <div class="aba oculto" data-aba="revisao" role="tabpanel">
+  <section>
+    <h2>Revisão e erros</h2>
+    <p class="nota-sec">Revisão completa dos canais: verificações automáticas (exatas) + revisão do Claude com as imagens do canal, à luz das metas e dos estudos. Pendentes primeiro, do mais grave ao mais leve. Corrigiu no Studio? Toque em <b>✅ Resolvido</b> (abre o Telegram com o comando pronto; toque em Iniciar).</p>
+    <div id="revisao"></div>
+  </section>
+  <section id="sec-pendencias">
+    <h2>Lembretes</h2>
+    <div class="caixa"><ul class="lista-simples" id="pendencias"></ul></div>
+  </section>
+  </div>
+
+  <div class="aba oculto" data-aba="agenda" role="tabpanel">
+  <section>
+    <h2>Agenda da semana</h2>
+    <p class="nota-sec">O que vai ao ar em cada dia e o que ainda falta programar ou produzir, conferido no YouTube na manhã de domingo.</p>
+    <div id="agenda"></div>
+  </section>
+  </div>
+
+  <div class="aba oculto" data-aba="claude" role="tabpanel">
+  <section>
+    <h2>Claude: novidades e o seu uso</h2>
+    <p class="nota-sec">Novidades do Claude e do Claude Code da semana e os números do seu uso, medidos no histórico das conversas (não estimados), com uma análise dos seus prompts.</p>
+    <div id="claude"></div>
+  </section>
+  </div>
 
   <footer id="rodape"></footer>
 </main>
@@ -627,16 +696,178 @@ function desenharResto() {
     Horas de exibição da meta: horas de vídeos longos nos últimos 12 meses segundo o Analytics; a referência oficial para a monetização é o YouTube Studio.`;
 }
 
+/* ---------- Domingo de manutenção: abas ---------- */
+const ABAS = [["numeros", "📊 Números"], ["novidades", "📰 Novidades do YouTube"], ["revisao", "🛠️ Revisão e erros"],
+              ["sugestoes", "💡 Sugestões e insights"], ["agenda", "📅 Agenda da semana"], ["claude", "🤖 Claude"]];
+const NOMES_SERIE = { oracao: "Oração do Dia", financas: "Dindin com Ciência", soninho: "Soninho Bão", oracao_noite: "Oração da Noite" };
+const COR_SERIE = { ...Object.fromEntries(ORDEM.map(c => [c, CANAIS[c].cor])), oracao_noite: "#5C7BD9" };
+const ROTULO_GRAV = { grave: "🔴 Grave", importante: "🟠 Importante", melhoria: "🟡 Melhoria" };
+const ROTULO_AREA = { layout: "Layout", postagens: "Postagens", titulos_copy: "Títulos e copy", thumbnails: "Thumbnails", configuracoes: "Configurações", playlists: "Playlists", outro: "Outro" };
+const semEdicao = caixa => caixa.append(semDados("Esta aba começa no Domingo de manutenção", "A primeira edição com novidades, revisão, agenda e uso do Claude sai no domingo, 04/10, às 9h."));
+const falhouPasso = (caixa, passo) => caixa.append(semDados("Esta parte não rodou nesta edição", passo.status === "sem_cota" ? "Faltou cota do Claude; a máquina tenta de novo em 12 horas e o painel é atualizado." : (passo.erro || "Erro inesperado; veja o log do Domingo de manutenção.")));
+let abaAtual = "numeros";
+
+function montarAbas() {
+  const nav = document.getElementById("abas"); nav.innerHTML = "";
+  const graves = (D.revisao?.erros || []).filter(e => e.estado === "pendente" && e.gravidade === "grave").length;
+  const pend = (D.revisao?.erros || []).filter(e => e.estado === "pendente").length;
+  for (const [id, rotulo] of ABAS) {
+    const b = el("button", { type: "button", role: "tab", "aria-selected": String(id === abaAtual), onclick: () => mostrarAba(id) }, rotulo);
+    if (id === "revisao" && pend) b.append(el("span", { class: "cont" + (graves ? " grave" : "") }, String(pend)));
+    if (id === "novidades" && D.novidades?.youtube?.length) b.append(el("span", { class: "cont" }, String(D.novidades.youtube.length)));
+    nav.append(b);
+  }
+}
+
+function mostrarAba(id) {
+  abaAtual = id;
+  document.querySelectorAll(".aba").forEach(a => a.classList.toggle("oculto", a.dataset.aba !== id));
+  montarAbas();
+  try { history.replaceState(null, "", "#aba-" + id); } catch (_) {}
+  if (id === "numeros") requestAnimationFrame(() => Object.values(graficos).forEach(g => g.resize()));
+}
+
+function cartaoNovidade(n, extra) {
+  return el("article", { class: "cartao", html: `<div class="sug-topo"><span class="meta">${esc(n.fonte || "")} · ${fmtData(n.data)}</span>${extra || ""}</div>
+    <h4>${esc(n.titulo)}</h4><p>${esc(n.o_que_mudou)}</p>
+    ${n.acao ? `<p><strong style="color:var(--tinta)">O que fazer:</strong> ${esc(n.acao)}</p>` : ""}
+    ${n.como_usar ? `<p><strong style="color:var(--tinta)">Como usar:</strong> ${esc(n.como_usar)}</p>` : ""}
+    <p class="meta"><a href="${esc(n.link)}" target="_blank" rel="noopener noreferrer">Abrir a fonte ↗</a></p>` });
+}
+
+function desenharNovidades() {
+  const caixa = document.getElementById("novidades"); caixa.innerHTML = "";
+  const nov = D.novidades;
+  if (!nov) return semEdicao(caixa);
+  if (nov.status !== "ok") return falhouPasso(caixa, nov);
+  if (!nov.youtube.length) { caixa.append(el("div", { class: "caixa" }, el("p", { class: "resumo", style: "margin:0" }, "Nenhuma novidade ou atualização relevante nesta semana."))); return; }
+  const rot = { ajuda: "ajuda os canais", atrapalha: "atrapalha os canais", neutro: "neutro" };
+  for (const n of nov.youtube) {
+    const canais = (n.canais || []).map(c => c === "todos" ? "todos os canais" : CANAIS[c]?.curto || c).join(", ");
+    caixa.append(cartaoNovidade(n, `<span><span class="chip ${esc(n.impacto)}">${rot[n.impacto] || esc(n.impacto)}</span> <span class="meta">${esc(canais)}</span></span>`));
+  }
+}
+
+function cartaoErro(e) {
+  const passos = (e.solucao || []).map(p => `<li>${esc(p)}</li>`).join("");
+  const link = D.bot_usuario && e.estado === "pendente" ? `<a class="botao-resolvido" href="https://t.me/${esc(D.bot_usuario)}?start=resolvido_${esc(e.id)}" target="_blank" rel="noopener">✅ Resolvido</a>` : "";
+  const quando = e.estado === "resolvido" ? `resolvido em ${fmtData(String(e.resolvido_em).slice(0, 10))}${e.resolvido_por ? " (" + esc(e.resolvido_por) + ")" : ""}` : `desde ${fmtData(e.primeira_vez)}`;
+  return el("article", { class: "cartao " + esc(e.gravidade), html: `<div class="sug-topo"><span><span class="etiqueta" style="border-color:${CANAIS[e.canal]?.cor || TXT.t2}">${esc(CANAIS[e.canal]?.nome || e.canal)}</span>
+      <span class="etiqueta">${ROTULO_AREA[e.area] || esc(e.area)}</span> ${e.voltou && e.estado === "pendente" ? '<span class="chip atencao">↩️ voltou</span>' : ""}</span>
+      <span class="meta">${ROTULO_GRAV[e.gravidade] || esc(e.gravidade)} · ${quando} · ${e.origem === "automatica" ? "verificação automática" : "revisão do Claude"}</span></div>
+    <h4>${esc(e.problema)}</h4><p><strong style="color:var(--tinta)">Por que importa:</strong> ${esc(e.por_que)}</p>
+    ${passos ? `<p style="margin-top:8px"><strong style="color:var(--tinta)">Como resolver:</strong></p><ol>${passos}</ol>` : ""}${link}` });
+}
+
+function desenharRevisao() {
+  const caixa = document.getElementById("revisao"); caixa.innerHTML = "";
+  const rev = D.revisao;
+  if (!rev) return semEdicao(caixa);
+  const erros = rev.erros || [];
+  const ordem = { grave: 0, importante: 1, melhoria: 2 };
+  const pend = erros.filter(e => e.estado === "pendente").sort((a, b) => (ordem[a.gravidade] ?? 9) - (ordem[b.gravidade] ?? 9));
+  const resumo = el("div", { class: "kpis", style: "margin-bottom:16px" });
+  for (const g of ["grave", "importante", "melhoria"]) resumo.append(el("div", { class: "kpi", html: `<div class="t">${ROTULO_GRAV[g]}</div><div class="v">${fmt(pend.filter(e => e.gravidade === g).length)}</div><div class="d">pendentes</div>` }));
+  caixa.append(resumo);
+  for (const [cid, c] of Object.entries(rev.canais || {})) {
+    if (c.status === "ok" && c.resumo) caixa.append(el("div", { class: "canal-analise", style: `--cor:${CANAIS[cid]?.cor};margin:0 0 14px` }, el("h3", {}, CANAIS[cid]?.nome || cid), el("p", { style: "margin:0;color:var(--tinta-2);max-width:80ch" }, c.resumo)));
+    else if (c.status !== "ok") caixa.append(el("p", { class: "nota-sec" }, `⚠️ ${CANAIS[cid]?.nome || cid}: ${c.status === "so_automatica" ? "só as verificações automáticas rodaram (a revisão do Claude falhou)" : c.status === "sem_cota" ? "sem cota do Claude; nova tentativa em 12 horas" : "a revisão não rodou (" + (c.erro || "erro") + ")"}.`));
+  }
+  if (!pend.length) caixa.append(semDados("Nenhum erro pendente", "Tudo o que foi apontado já está resolvido."));
+  pend.forEach(e => caixa.append(cartaoErro(e)));
+  const ajustes = Object.entries(rev.canais || {}).flatMap(([cid, c]) => (c.ajustes_sistema || []).map(a => [cid, a]));
+  if (ajustes.length) {
+    caixa.append(el("h3", { style: "font-family:var(--display);margin:22px 0 8px" }, "🔧 Ajustes no sistema (o Claude faz na próxima conversa)"));
+    ajustes.forEach(([cid, a]) => caixa.append(el("article", { class: "cartao", html: `<span class="etiqueta" style="border-color:${CANAIS[cid]?.cor}">${esc(CANAIS[cid]?.curto || cid)}</span><h4>${esc(a.problema)}</h4><p>${esc(a.ajuste)}</p>` })));
+  }
+  const res = erros.filter(e => e.estado === "resolvido").sort((a, b) => String(b.resolvido_em).localeCompare(String(a.resolvido_em)));
+  if (res.length) { const d = el("details", { class: "resolvidos" }, el("summary", {}, `✅ Resolvidos (${res.length})`)); res.forEach(e => d.append(cartaoErro(e))); caixa.append(d); }
+}
+
+function desenharAgenda() {
+  const caixa = document.getElementById("agenda"); caixa.innerHTML = "";
+  if (D.agenda === undefined) return semEdicao(caixa);
+  if (!D.agenda) return caixa.append(semDados("Agenda indisponível nesta edição", "Veja o log do Domingo de manutenção."));
+  const chip = { "no ar": "ok", "programado": "ok", "falta programar": "atencao", "falta produzir": "ruim", "agendar no Studio": "atencao", "sem conferir": "" };
+  const corChip = s => chip[s] ?? "";
+  const grade = el("div", { class: "dias" });
+  for (const d of D.agenda) {
+    const lista = el("ul");
+    if (!d.itens.length) lista.append(el("li", {}, "Nada previsto."));
+    for (const i of d.itens) {
+      const tipo = i.tipo === "short" ? "Short" : i.tipo === "comunidade" ? "Post da Comunidade" : i.serie === "oracao_noite" ? "Oração da Noite" : "Vídeo longo";
+      lista.append(el("li", { html: `<span class="serie" style="background:${COR_SERIE[i.serie] || TXT.t2}"></span><b>${i.hora ? esc(i.hora) + " · " : ""}${esc(NOMES_SERIE[i.serie] || i.serie)}</b> — ${tipo}
+        ${i.titulo ? `<div style="margin:2px 0 4px 14px">${esc(i.titulo)}</div>` : ""}<div style="margin-left:14px"><span class="chip ${corChip(i.situacao)}">${esc(i.situacao)}</span></div>` }));
+    }
+    grade.append(el("div", { class: "caixa dia" }, el("h3", {}, `${d.dia_semana[0].toUpperCase() + d.dia_semana.slice(1)}, ${fmtCurta(d.data)}`), lista));
+  }
+  caixa.append(grade);
+}
+
+function desenharClaude() {
+  const caixa = document.getElementById("claude"); caixa.innerHTML = "";
+  if (!D.uso_claude && !D.novidades) return semEdicao(caixa);
+  caixa.append(el("h3", { style: "font-family:var(--display);margin:0 0 10px" }, "Novidades do Claude e do Claude Code"));
+  const nov = D.novidades;
+  if (!nov || nov.status !== "ok") falhouPasso(caixa, nov || {});
+  else if (!nov.claude.length) caixa.append(el("p", { class: "nota-sec" }, "Nenhuma novidade relevante do Claude nesta semana."));
+  else nov.claude.forEach(n => caixa.append(cartaoNovidade(n)));
+  const u = D.uso_claude;
+  caixa.append(el("h3", { style: "font-family:var(--display);margin:24px 0 10px" }, "O seu uso na semana"));
+  if (!u || u.status !== "ok") return falhouPasso(caixa, u || {});
+  const n = u.numeros, t = n.totais;
+  const kpis = el("div", { class: "kpis" });
+  for (const [r, v, d] of [["Conversas", t.conversas, `${fmtData(n.inicio.slice(0, 10))} a ${fmtData(n.fim.slice(0, 10))}`], ["Mensagens suas", t.mensagens_joao, "o que você digitou"],
+    ["Tokens gerados", t.tokens_gerados, "texto e código escritos pelo Claude"], ["Contexto relido", t.tokens_contexto_relidos, "tokens que o Claude releu a cada resposta"]])
+    kpis.append(el("div", { class: "kpi", html: `<div class="t">${r}</div><div class="v">${fmt(v)}</div><div class="d">${d}</div>` }));
+  caixa.append(kpis);
+  const tab = el("table");
+  tab.append(el("thead", { html: `<tr><th>Conversa</th><th class="num">Duração (do 1º ao último recado)</th><th class="num">Suas mensagens</th><th class="num">Tokens gerados</th><th class="num">Contexto relido</th><th class="num">Contexto: início → fim (máx.)</th></tr>` }));
+  const corpo = el("tbody");
+  for (const c of [...n.conversas].sort((a, b) => b.tokens_contexto_relidos - a.tokens_contexto_relidos)) {
+    const h = Math.floor(c.duracao_min / 60), m = c.duracao_min % 60;
+    corpo.append(el("tr", { html: `<td>${esc(c.titulo)}${c.titulo === n.conversa_mais_cara ? ' <span class="chip atencao">mais cara</span>' : ""}<div style="color:var(--tinta-3);font-size:12.5px">${fmtData(c.inicio.slice(0, 10))}</div></td>
+      <td class="num">${h ? h + " h " : ""}${m} min</td><td class="num">${fmt(c.mensagens_joao)}</td><td class="num">${fmt(c.tokens_gerados)}</td><td class="num">${fmt(c.tokens_contexto_relidos)}</td>
+      <td class="num">${fmt(c.contexto_inicial)} → ${fmt(c.contexto_final)} (${fmt(c.contexto_maximo)})</td>` }));
+  }
+  tab.append(corpo); caixa.append(el("div", { class: "caixa tabela-envolve", style: "margin-top:14px" }, tab));
+  if (n.maquina?.length) {
+    const tm = el("table");
+    tm.append(el("thead", { html: `<tr><th>Agente da máquina</th><th class="num">Chamadas</th><th class="num">Tokens gerados</th><th class="num">Contexto relido</th><th class="num">Minutos</th><th class="num">Erros</th></tr>` }));
+    const cm = el("tbody"); n.maquina.forEach(a => cm.append(el("tr", { html: `<td>${esc(a.agente)}</td><td class="num">${fmt(a.chamadas)}</td><td class="num">${fmt(a.tokens_gerados)}</td><td class="num">${fmt(a.tokens_contexto_relidos)}</td><td class="num">${fmt(a.minutos, 1)}</td><td class="num">${fmt(a.erros)}</td>` })));
+    tm.append(cm); caixa.append(el("h3", { style: "font-family:var(--display);margin:22px 0 8px" }, "Chamadas automáticas da máquina (claude -p)"), el("div", { class: "caixa tabela-envolve" }, tm));
+  } else caixa.append(el("p", { class: "nota-sec", style: "margin-top:14px" }, "Chamadas automáticas da máquina: o registro começou em 02/10; os números aparecem a partir da próxima edição."));
+  caixa.append(el("h3", { style: "font-family:var(--display);margin:24px 0 10px" }, "Análise dos seus prompts"));
+  const a = u.analise;
+  if (!a) return caixa.append(semDados("Análise não publicada nesta edição", u.analise_descartada ? "O texto citava números que não existem nos dados e foi descartado pelo verificador." : "Sem análise disponível."));
+  const lista = itens => el("ul", { class: "lista-simples" }, ...itens.map(i => el("li", {}, i)));
+  caixa.append(el("div", { class: "caixa" }, el("p", { class: "resumo", style: "margin-top:0" }, a.resumo),
+    el("div", { class: "colunas-pm" }, el("div", {}, el("h4", {}, "O que funcionou bem"), lista(a.funcionou_bem)), el("div", {}, el("h4", {}, "3 hábitos para a próxima semana"), lista(a.habitos)))));
+  if (a.prompts_melhores.length) {
+    caixa.append(el("h3", { style: "font-family:var(--display);margin:22px 0 8px" }, "Prompts que poderiam ser mais claros"));
+    a.prompts_melhores.forEach(p => caixa.append(el("article", { class: "cartao", html: `<p class="meta">Você escreveu:</p><p>“${esc(p.original)}”</p><p><strong style="color:var(--tinta)">O que faltou:</strong> ${esc(p.o_que_faltou)}</p><p><strong style="color:var(--tinta)">Jeito ideal:</strong></p><p style="white-space:pre-wrap;color:var(--tinta)">${esc(p.reescrito)}</p>` })));
+  }
+  if (a.encerrar_conversa.length) {
+    caixa.append(el("h3", { style: "font-family:var(--display);margin:22px 0 8px" }, "Onde valia encerrar e recomeçar"));
+    a.encerrar_conversa.forEach(c => caixa.append(el("article", { class: "cartao", html: `<h4>${esc(c.conversa)}</h4><p class="meta">${esc(c.quando)}</p><p>${esc(c.motivo)}</p>` })));
+  }
+}
+
 function desenhar() {
   montarFiltros(); desenharTrilhas(); desenharKpis(); desenharSerie(); desenharTabela(); desenharRetencao(); desenharPublico(); desenharAnalise(); desenharSugestoes(); desenharResto();
+  desenharNovidades(); desenharRevisao(); desenharAgenda(); desenharClaude(); montarAbas();
 }
 
 function iniciar(dados) {
   D = dados;
   document.getElementById("porta").classList.add("oculto");
   document.getElementById("app").classList.remove("oculto");
-  document.getElementById("subtitulo").innerHTML = `Edição de <strong>${fmtData(D.gerado_em)}</strong>. Métricas até ${fmtData(D.janela_fim)}.`;
+  document.getElementById("subtitulo").innerHTML = `Edição de <strong>${fmtData(D.gerado_em)}</strong>. Métricas até ${fmtData(D.janela_fim)}.` +
+    (D.manutencao_em ? ` Domingo de manutenção: ${fmtData(D.manutencao_em.slice(0, 10))} às ${esc(D.manutencao_em.slice(11, 16))}.` : "") +
+    (D.numeros_desatualizados ? `<br><span style="color:var(--atencao)">⚠️ Os números são da edição anterior: a coleta desta semana falhou (${esc(D.numeros_desatualizados)}).</span>` : "");
   desenhar();
+  const pedida = location.hash.replace(/^#(aba-)?/, "");
+  mostrarAba(ABAS.some(([id]) => id === pedida) ? pedida : "numeros");
   addEventListener("resize", () => Object.values(graficos).forEach(g => g.resize()));
 }
 </script>
